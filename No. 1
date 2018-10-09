@@ -1,0 +1,102 @@
+setwd("C:/Downloads")
+rm(list = ls()
+# ---------------------------------------------
+data <- read.csv(file="bank.csv", sep=";")
+
+# ---------------------------------------------
+# 1. Select random subsample of data set;
+# ---------------------------------------------
+
+# selecting random rows
+data[sample(nrow(data), replace=F, size=10),] # 10 random rows
+data[sample(nrow(data), replace=F, size=0.005*nrow(data)),] # 0.5 perc. of all rows
+# or we can make it easier and use library "dplyr"
+library(dplyr)
+sample_n(data, 10)
+sample_n(data, size = nrow(data)*0.005)
+
+# ---------------------------------------------
+# 2. filter desired rows using simple and more complex conditions;
+# ---------------------------------------------
+
+data[c(1,11,111),] #1, 11 and the 111th row
+subset(data, balance>30000) # rich people
+data[data$job == "unemployed" & data$age>30 & data$marital == 'single',]
+
+# ---------------------------------------------
+# 3. drop unnecessary variables, rename some variables;
+# ---------------------------------------------
+
+d10 <- sample_n(data, 10) # lets take only small subsample for this task
+d10[,-c(5,9)]
+d10[,c("day","month", "pdays", "previous")] <- list(NULL)
+colnames(d10)[1:3] <- c("metai", "darbas", "santuoka")
+d10 # some variable are dropped, some renamed
+
+# ---------------------------------------------
+# 4. calculate summarizing statistics (for full sample and by categorical variables as well);
+# ---------------------------------------------
+
+# calculatig summarising statistics for numeric variables
+summary(data[,num_var])
+# few more
+apply(data[,num_var], 2, sd) #standard deviation
+apply(data[,num_var], 2, var) #variance
+
+# summarising categorical variables
+cat_var <- c(2:4,9,11,16)
+summary(data[,cat_var], maxsum=20)
+
+# summarising binarian variables
+bin_var <- c(5,7,8,17)
+summary(data[,bin_var])
+
+# by categorical variables (using dplyr library)
+# grouping data by each categorical variable
+g_job <- group_by(data, job)
+g_mar <- group_by(data, marital)
+g_edu <- group_by(data, education)
+g_contact <- group_by(data, contact)
+g_month <- group_by(data, month)
+g_poutc <- group_by(data, poutcome)
+
+# calculating summarising statistics (mean, standard deviation, variation and range
+# by variable "job"" for all numeric variables:
+g_job %>% summarise_if(is.numeric, funs(mean, Std.dev=sd, var, min, max))
+# however as a result we get a quite big data.frame
+# we can make it smaller by choosing for example, only one variable (marital) to
+# calculate only mean and variation
+summarise(g_mar, Mean_by_marital = mean(balance), Variation=var(balance))
+# this was an exampe with only few categorical variables and some selected functions
+
+# ---------------------------------------------
+# 5. create new variables using simple transformation and custom functions;
+# ---------------------------------------------
+
+# creating new numeric variable
+data$newnum <- data$age + data$balance
+head(data)
+# creating new categorical variable
+data$newcat <- paste(substr(data$marital, start=1, stop=3), "_" , substr(data$job, start=1, stop=3), sep="")
+head(data)
+# creating new variable using mean of two variables
+data$agebalmean <- rowMeans(cbind(data$age, data$balance))
+
+# ---------------------------------------------
+# 6. order data set by several variables.
+# ---------------------------------------------
+
+# ordering data first by age and then by job 
+head(data[order(data$age, data$job),])
+# or we can use dplyr library and for example ordering by age (in decreasing order) ad by job
+head(arrange(data, -age, job))
+
+
+
+
+
+
+
+
+
+
