@@ -1,0 +1,14 @@
+setwd("C:/Downloads")
+rm(list = ls())
+# ---------------------------------------------
+data <- read.csv(file="bank.csv", sep=";")
+
+# ---------------------------------------------
+# In order to understand the data please visualize it. You are free to select the scope, types of plots, etc.
+# ---------------------------------------------
+
+# Job influence on term deposit 
+job <- data[,c(2, 17)]
+job <- as.matrix(table(job))
+barplot(job[,1],beside=t,legend=rownames(job),names.arg = F, col=rainbow(12), ylim=c(0,140), args.legend = list(x = "topright", bty="n"), main="Job influence on term deposit", ylab= "frequency")
+ 
