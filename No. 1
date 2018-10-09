@@ -1,5 +1,5 @@
 setwd("C:/Downloads")
-rm(list = ls()
+rm(list = ls())
 # ---------------------------------------------
 data <- read.csv(file="bank.csv", sep=";")
 
