@@ -1,0 +1,68 @@
+rm(list = ls())
+data <- read.csv(file="bank-full.csv", sep=";", na.strings = c(""), header=T)
+# Checking for missing values
+sapply(data, function(x) sum(is.na(x)))
+# There are no missing values
+# Taking only the variables we are going to use
+data1 <- data[,c(1,2,3,4,6,7,8,13,15,16,17)]
+head(data1)
+
+# Lets change the values of variable y (yes = 1, no = 0)
+data1$y <- as.character(data$y)
+data1$y[data1$y == "yes"] <- "1"
+data1$y[data1$y == "no"] <- "0"
+data1$y <- as.numeric(data1$y)
+
+
+# Cuttinng data into train and test
+train <- data1[1:40690,]
+test <- data1[40691:45211,]
+
+# fitting the model
+model <- glm(y~., family=binomial(link="logit"), data=train)
+# obtaining resutls of our model
+summary(model)
+# we can see that "previous" is not statistically significant. 
+# The most statistically significant variables are "housing", "campaign"
+# and "poutcome", because they have the lowest p-value
+
+# Let's run anova function to analyze the table of deviance
+anova(model, test="Chisq")
+# As we can see Job, Marital, Housing, Campaign and Poutcome
+# are improoving model the most. Education, Balance, Loan and Previous 
+
+
+fitted.results <- predict(model, newdata = subset(test, select=c(1,2,3,4,5,6,7,8,9,10)), type='response')
+# setting desicion boundary 0.5
+fitted.results <- ifelse(fitted.results > 0.5 ,1 ,0)
+val <- mean(fitted.results != test$y)
+print(paste("acurancy", 1-val))
+# Predictive ability is more than 0.5, so the model fit, but accurancy could be better
+
+# Using Goodness of Fit: Pseudo R^2 we can check if model has predictive power
+library(pscl)
+pR2(model)
+# We can see that McFadden coef. is very small which means that model doesn't predict well, 
+# but that can depend a lot on the data we took for train and test. 
+
+# -----------------------------------------------------------------------------------
+# Trying again, but now taking only the variables that are statistically significant
+data1 <- data[,c(7, 13, 16 ,17)]
+data1$y <- as.character(data$y)
+data1$y[data1$y == "yes"] <- "1"
+data1$y[data1$y == "no"] <- "0"
+data1$y <- as.numeric(data1$y)
+train <- data1[1:40690,]
+test <- data1[40691:45211,]
+model1 <- glm(y~ housing + campaign + poutcome , family=binomial(link="logit"), data=train)
+summary(model1)
+anova(model1, test="Chisq")
+fitted.results <- predict(model1, newdata = subset(test, select=c(1,2,3,4,5,6)), type='response')
+fitted.results <- ifelse(fitted.results > 0.5 ,1 ,0)
+val <- mean(fitted.results != test$y)
+print(paste("acurancy", 1-val))
+
+library(pscl)
+pR2(model1)
+# model predictivity did not improve
+# As we can see accurancy is a little bit bigger now
