@@ -6,9 +6,27 @@ data <- read.csv(file="bank.csv", sep=";")
 # ---------------------------------------------
 # In order to understand the data please visualize it. You are free to select the scope, types of plots, etc.
 # ---------------------------------------------
+library(ggplot2)
 
-# Job influence on term deposit 
-job <- data[,c(2, 17)]
-job <- as.matrix(table(job))
-barplot(job[,1],beside=t,legend=rownames(job),names.arg = F, col=rainbow(12), ylim=c(0,140), args.legend = list(x = "topright", bty="n"), main="Job influence on term deposit", ylab= "frequency")
- 
+# Age Vs Balance based on marital status (Scatter plot)
+ggplot(data, aes(x=age, y=balance, color=marital)) + geom_point(cex=3) + 
+geom_smooth(method="lm", col="black") + coord_cartesian(ylim=c(0,30000)) + 
+labs(title="Age vs Balance", subtitle="based on marital status", x="Age", y="Balance") + 
+scale_y_continuous(breaks=seq(0,30000,10000), labels=function(x){paste0(x/1000,"K")}) + 
+guides(fill=guide_legend(title="New Legend Title"))
+
+# Term deposit based on education
+nas <- apply(data, 1, function(x){any(is.na(x))})
+sum(nas)
+data <- data[!nas,]
+ggplot(data, aes(education, ..count..)) + geom_bar(aes(fill=y), position="dodge") + 
+labs(x="Education", y="Count", title="Term deposit based on education") + 
+guides(fill=guide_legend(title="Term deposit"))
+
+# Pie chart (term deposit based on education)
+data_yes <- subset(data, data$y=="yes")
+ggplot(data_yes, aes(x = factor(1), fill = job)) + geom_bar(width = 1) + 
+coord_polar(theta="y", start=0) + theme_void() + 
+labs(title=paste("Term deposit based on education")) +
+theme(legend.position="bottom") + guides(fill=guide_legend(title=NULL))
+
